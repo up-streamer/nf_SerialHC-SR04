@@ -73,7 +73,7 @@ namespace Driver.nf_Serial_HCSR04
 
 				if (dataCheck == sum)
                 {
-					distanceValue = (int)(data[1] + data[2]);
+					distanceValue = (int)(distanceByte);
 					return distanceValue;
 				}
 			}
