@@ -58,7 +58,6 @@ namespace Driver.nf_Serial_HCSR04
         {
 			sensorPing(pingByte);
 			byte[] data = new byte[4];
-			int distanceValue;
 			// Attempt to read 4 bytes from the Serial Device input stream
 			// Format: 0XFF + H_DATA + L_DATA + SUM
 			var bytesRead = inputDataReader.Load(4);
@@ -73,8 +72,7 @@ namespace Driver.nf_Serial_HCSR04
 
 				if (dataCheck == sum)
                 {
-					distanceValue = (int)(distanceByte);
-					return distanceValue;
+					return distanceByte;
 				}
 			}
 				return 0;
