@@ -7,9 +7,10 @@ using System.Diagnostics;
 using Windows.Storage.Streams;
 using Windows.Devices.SerialCommunication;
 using nanoFramework.Runtime.Events; /// New. Needs Packages
-using nanoFramework.Hardware.Esp32;
 using Driver.nf_SerialHC_SR04.Constants;
-
+#if BUIID_FOR_ESP32
+using nanoFramework.Hardware.Esp32;
+#endif
 
 namespace Driver.nf_Serial_HCSR04
 {
