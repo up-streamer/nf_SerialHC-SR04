@@ -15,7 +15,7 @@ using nanoFramework.Hardware.Esp32;
 namespace Driver.nf_Serial_HCSR04
 {
 
-    public class nf_Serial_HCSR04
+    public class Serial_HCSR04
     {
 		private readonly SensorType pingByte;
 		static SerialDevice _serialDevice;
@@ -33,7 +33,7 @@ namespace Driver.nf_Serial_HCSR04
 		/// <summary>
 		/// Constructor module
 		/// </summary>
-		public nf_Serial_HCSR04(SensorType pingByte)
+		public Serial_HCSR04(SensorType pingByte)
 		{	
 			// Define Tx ping byte
 			this.pingByte = pingByte;

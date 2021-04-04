@@ -8,10 +8,10 @@ namespace testnf_SerialHC_SR04
 {
     public class Program
     {
-        private static nf_Serial_HCSR04 sensor;
+        private static Serial_HCSR04 sensor;
         public static void Main()
         {
-            sensor = new nf_Serial_HCSR04(SensorType.JSN_SR04T);
+            sensor = new Serial_HCSR04(SensorType.JSN_SR04T);
 
             for (int i = 0; i < 20; i++)
             {
