@@ -11,13 +11,13 @@ namespace testnf_SerialHC_SR04
         private static Serial_HCSR04 sensor;
         public static void Main()
         {
-            sensor = new Serial_HCSR04(SensorType.JSN_SR04T);
+            sensor = new Serial_HCSR04(SensorType.AJ_SR04M);
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 500; i++)
             {
-                int distance = sensor.getDistance();
-                Debug.WriteLine($"Distance = {distance} mm");
-                Thread.Sleep(1000);
+                int distance = sensor.GetDistance();
+                Debug.WriteLine($"Distance = {distance} mm" + $"--> Count = {i}");
+                 Thread.Sleep(1000);
             }
         }
     }
