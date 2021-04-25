@@ -20,7 +20,7 @@ namespace Driver.nf_Serial_HCSR04
     {
 		private readonly SensorType pingByte;
 		static SerialDevice _serialDevice;
-		readonly byte[] data = new byte[4];
+		byte[] data; //new byte[4]; For mode 4, serial binary with trigger
 		public event NativeEventHandler DataReceived;
 		static DataWriter outputDataWriter;
 		static DataReader inputDataReader;
@@ -100,30 +100,79 @@ namespace Driver.nf_Serial_HCSR04
 			uint sum;
 			uint dataCheck;
 			int distanceByte;
+			uint bytesRead;
 
 			sensorPing(pingByte);
 			Thread.Sleep(100);
 
 			// Attempt to read 4 bytes from the Serial Device input stream
 			// Format: 0XFF + H_DATA + L_DATA + SUM
-			var bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
+			bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
 			Debug.WriteLine("Bytes Read = " + bytesRead);
 
-			if (bytesRead == 4)
+			if (bytesRead == 4) //(bytesRead == 4) // For mode 4, serial binary with trigger
 			{
+				data = new byte[bytesRead];
 				inputDataReader.ReadBytes(data);
 
 				distanceByte = (data[1] << 8) | data[2];
 				sum = data[3];
 				dataCheck = (uint) (data[0] + data[1] + data[2] + 1) & 0x00ff;
 				Debug.WriteLine("Datacheck = " + dataCheck.ToString() + " -- Sum = " + sum.ToString());
+
+				// For mode 4, serial binary with trigger
 				Debug.WriteLine($"RX = {(byte)data[0] + " " + (byte)data[1] + " " + (byte)data[2] + " " + (byte)data[3]}");
+
 				if (dataCheck == sum)
                 {
 					return distanceByte;
 				}
+				return distanceByte;
 			}
 			return 0;
+		}
+
+		public int GetDistanceASCII()
+        {
+			uint sum;
+			uint dataCheck;
+			int distanceByte;
+			uint bytesRead;
+			sensorPing(pingByte);
+			Thread.Sleep(100);
+
+			// Attempt to read 12 bytes from the Serial Device input stream
+
+			// For mode 5, computer printer mode (ASCII) with trigger
+			// Data Stream format.										Note: Not in data sheet!!
+			//RX = 71 97 112 61 49 56 56 49 109 109 13 10
+			//      G  a   p  =  1  8  8  1   m   m CR LF
+			bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
+			Debug.WriteLine("Bytes Read = " + bytesRead);
+
+			if (bytesRead == 12)
+			{
+				data = new byte[bytesRead];
+				inputDataReader.ReadBytes(data);
+
+				distanceByte = ((data[4]-48)*1000) + ((data[5]-48) * 100) + ((data[6]-48) * 10) + ((data[7] - 48));
+				sum =(uint) data[0] + data[1] + data[2] + data[3] + data[8] + data[8] + data[10] + data[11];
+				dataCheck = 582;
+				Debug.WriteLine("Datacheck = " + dataCheck.ToString() + " -- Sum = " + sum.ToString());
+				
+				//Quick and dirt check to data received 
+
+				Debug.Write($"RX = {(byte)data[0] + " " + (byte)data[1] + " " + (byte)data[2] + " " + (byte)data[3] }");
+				Debug.Write(" " + $"{(byte)data[4] + " " + (byte)data[5] + " " + (byte)data[6] + " " + (byte)data[7] }");
+				Debug.WriteLine(" " + $"{(byte)data[8] + " " + (byte)data[9] + " " + (byte)data[10] + " " + (byte)data[11] }");
+				if (dataCheck == sum)
+				{
+					return distanceByte;
+				}
+				return distanceByte;
+			}
+			return 0;
+
 		}
 
 		/// <summary>
@@ -133,6 +182,7 @@ namespace Driver.nf_Serial_HCSR04
 		/// <param name="EventData"></param>
 		private void _Serial_DataReceived(object Sender, SerialDataReceivedEventArgs EventData)
 		{
+			
 			int distanceValue;
 			int i;
 			// Attempt to read 4 bytes from the Serial Device input stream
