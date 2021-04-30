@@ -11,8 +11,9 @@ namespace testnf_SerialHC_SR04
         private static Serial_HCSR04 sensor;
         public static void Main()
         {
-            sensor = new Serial_HCSR04(SensorType.AJ_SR04M);
-            
+
+            sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Serial_LP_Bin);
+
             for (int i = 0; i < 500; i++)
             {
                 int distance = sensor.GetDistanceASCII();

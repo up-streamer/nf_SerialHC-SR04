@@ -18,12 +18,14 @@ namespace Driver.nf_Serial_HCSR04
 
     public class Serial_HCSR04
     {
-		private readonly SensorType pingByte;
+		//private readonly SensorType sensorType= new SensorType();        //SensorType pingByte;
 		static SerialDevice _serialDevice;
 		byte[] data; //new byte[4]; For mode 4, serial binary with trigger
 		public event NativeEventHandler DataReceived;
 		static DataWriter outputDataWriter;
 		static DataReader inputDataReader;
+		public readonly byte pingByte;
+		public readonly int Mode;
 		//// setup data writer for Serial Device output stream to ping device
 		//DataWriter outputDataWriter = new DataWriter(_serialDevice.OutputStream);
 		//// setup data read for Serial Device input stream to receive the distance
@@ -35,10 +37,13 @@ namespace Driver.nf_Serial_HCSR04
 		/// <summary>
 		/// Constructor module
 		/// </summary>
-		public Serial_HCSR04(SensorType pingByte)
+		public Serial_HCSR04(SensorType ping, Mode mode)
 		{
-            // Define Tx ping byte
-            this.pingByte = pingByte;
+
+			// Define Tx ping byte
+			pingByte = (byte) ping;
+			// Define Sensor mode
+			Mode =(int) mode;
 			// get available ports
 			var serialPorts = SerialDevice.GetDeviceSelector();
 			Debug.WriteLine("Avail. Ports = " + serialPorts);
@@ -89,9 +94,9 @@ namespace Driver.nf_Serial_HCSR04
 		}
 
 
-		private void sensorPing(SensorType ping)
-        {
-			outputDataWriter.WriteByte((byte) ping);
+		private void sensorPing(byte ping) //sensorPing(SensorType ping)
+		{
+			outputDataWriter.WriteByte(ping);
 			_ = outputDataWriter.Store();
 		}
 
