@@ -18,32 +18,25 @@ namespace Driver.nf_Serial_HCSR04
 
     public class Serial_HCSR04
     {
-		//private readonly SensorType sensorType= new SensorType();        //SensorType pingByte;
 		static SerialDevice _serialDevice;
-		byte[] data; //new byte[4]; For mode 4, serial binary with trigger
+		byte[] data; //To save incoming bytes
 		public event NativeEventHandler DataReceived;
+		// setup data writer for Serial Device output stream to ping device
 		static DataWriter outputDataWriter;
+		// setup data read for Serial Device input stream to receive the distance
 		static DataReader inputDataReader;
 		public readonly byte pingByte;
-		public readonly int Mode;
-		//// setup data writer for Serial Device output stream to ping device
-		//DataWriter outputDataWriter = new DataWriter(_serialDevice.OutputStream);
-		//// setup data read for Serial Device input stream to receive the distance
-		//DataReader inputDataReader = new DataReader(_serialDevice.InputStream)
-		//{
-		//	InputStreamOptions = InputStreamOptions.Partial
-		//};
+		public readonly Mode sensorMode;
 
 		/// <summary>
 		/// Constructor module
 		/// </summary>
 		public Serial_HCSR04(SensorType ping, Mode mode)
 		{
-
 			// Define Tx ping byte
 			pingByte = (byte) ping;
 			// Define Sensor mode
-			Mode =(int) mode;
+			sensorMode = mode;
 			// get available ports
 			var serialPorts = SerialDevice.GetDeviceSelector();
 			Debug.WriteLine("Avail. Ports = " + serialPorts);
@@ -57,23 +50,19 @@ namespace Driver.nf_Serial_HCSR04
             // set GPIO functions for COM2 (this is UART2 on ESP32 WROOM32)
             Configuration.SetPinFunction(17, DeviceFunction.COM2_TX);
 			Configuration.SetPinFunction(16, DeviceFunction.COM2_RX);
-			
-			serialPorts = SerialDevice.GetDeviceSelector();
-			Debug.WriteLine("Avail. Ports after setPinfunction = " + serialPorts);
+			;
 			// open COM2
-			// _serialDevice = SerialDevice.FromId("COM2");
 			ConfigPort("COM2");
 #else
 			///////////////////////////////////////////////////////////////////////////////////////////////////
 			// COM6 in STM32F769IDiscovery board (Tx, Rx pins exposed in Arduino header CN13: TX->D1, RX->D0)
 			// open COM6
-			_serialDevice = SerialDevice.FromId("COM6");
+			ConfigPort("COM6");
 #endif
 		}
 
 		private static void ConfigPort(string port)
 		{
-			//var serialPorts = SerialDevice.GetDeviceSelector();
 			_serialDevice = SerialDevice.FromId(port);
 			// set parameters
 			_serialDevice.BaudRate = 9600;
@@ -84,6 +73,7 @@ namespace Driver.nf_Serial_HCSR04
 			// set Timouts
 			//_serialDevice.WriteTimeout = new TimeSpan(0, 0, 0, 500);
 			//_serialDevice.ReadTimeout = new TimeSpan(0, 0, 0, 500);
+
 			// setup data writer for Serial Device output stream to ping device
 			outputDataWriter = new DataWriter(_serialDevice.OutputStream);
 			// setup data read for Serial Device input stream to receive the distance
@@ -94,11 +84,12 @@ namespace Driver.nf_Serial_HCSR04
 		}
 
 
-		private void sensorPing(byte ping) //sensorPing(SensorType ping)
+		private void sensorPing(byte ping)
 		{
 			outputDataWriter.WriteByte(ping);
 			_ = outputDataWriter.Store();
 		}
+
 
 		public int GetDistance()
         {
@@ -115,7 +106,7 @@ namespace Driver.nf_Serial_HCSR04
 			bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
 			Debug.WriteLine("Bytes Read = " + bytesRead);
 
-			if (bytesRead == 4) //(bytesRead == 4) // For mode 4, serial binary with trigger
+			if (bytesRead == 4) //For modes Serial_Auto, Serial_LP_Bin, serial binary with trigger
 			{
 				data = new byte[bytesRead];
 				inputDataReader.ReadBytes(data);

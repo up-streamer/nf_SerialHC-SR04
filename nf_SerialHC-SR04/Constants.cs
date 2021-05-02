@@ -5,9 +5,8 @@ namespace Driver.nf_SerialHC_SR04
     {
 
         /// <summary>
-        /// nf_Serial_HCSR04 module
+        /// Sensor available types
         /// </summary>
-   
             public enum SensorType
             {
                 JSN_SR04T = 0x55,
@@ -21,7 +20,6 @@ namespace Driver.nf_SerialHC_SR04
                 Serial_Auto,
                 Serial_LP_Bin,
                 Serial_LP_ASCII,
-
         }
     }
 }
