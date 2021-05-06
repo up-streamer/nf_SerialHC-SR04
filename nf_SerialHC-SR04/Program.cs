@@ -13,13 +13,19 @@ namespace testnf_SerialHC_SR04
         {
 
             sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Serial_LP_Bin);
+            //sensor.DataReceived += PrintData;
 
             for (int i = 0; i < 500; i++)
             {
-                int distance = sensor.GetDistanceASCII();
-                Debug.WriteLine($"Distance = {distance} mm" + $"--> Count = {i}");
-                 Thread.Sleep(1000);
+                int distance = sensor.GetDistance();
+                Debug.WriteLine($"distance = {distance} mm" + $"--> count = {i}");
+                Thread.Sleep(1000);
             }
+
         }
+        //static void PrintData(uint data1, uint data2, DateTime date)
+        //{
+        //    Debug.WriteLine($"Distance = {sensor.Distance} mm" + $"--> Date = {date.ToString()}");
+        //}
     }
 }
