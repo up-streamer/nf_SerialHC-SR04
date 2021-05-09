@@ -11,6 +11,7 @@ using nanoFramework.Runtime.Events; /// New. Needs Packages
 using Driver.nf_SerialHC_SR04.Constants;
 #if BUIID_FOR_ESP32
 using nanoFramework.Hardware.Esp32;
+using nanoFramework.Hardware.Esp32.Rmt;
 #endif
 
 namespace Driver.nf_Serial_HCSR04
@@ -35,6 +36,14 @@ namespace Driver.nf_Serial_HCSR04
 		int distanceByte;
 		uint bytesRead;
 
+		ReceiverChannel _rxChannel;
+		TransmitterChannel _txChannel;
+		RmtCommand _txPulse;
+
+		public int TriggerPin = -1;
+		public int EchoPin = -1;
+		const float _speedOfSound = 340.29F;
+
 		/// <summary>
 		/// Constructor module
 		/// </summary>
@@ -49,27 +58,79 @@ namespace Driver.nf_Serial_HCSR04
 			Debug.WriteLine("Avail. Ports = " + serialPorts);
 
 #if BUIID_FOR_ESP32
-            ////////////////////////////////////////////////////////////////////////////////////////////////////
-            // COM2 in ESP32-WROVER-KIT mapped to free GPIO pins
-            // mind to NOT USE pins shared with other devices, like serial flash and PSRAM
-            // also it's MANDATORY to set pin funcion to the appropriate COM before instanciating it
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			// COM2 in ESP32-WROVER-KIT mapped to free GPIO pins
+			// mind to NOT USE pins shared with other devices, like serial flash and PSRAM
+			// also it's MANDATORY to set pin funcion to the appropriate COM before instanciating it
 
-            // set GPIO functions for COM2 (this is UART2 on ESP32 WROOM32)
-            Configuration.SetPinFunction(17, DeviceFunction.COM2_TX);
-			Configuration.SetPinFunction(16, DeviceFunction.COM2_RX);
-			
+			// set GPIO functions for COM2 (this is UART2 on ESP32 WROOM32)
+			//Configuration.SetPinFunction(17, DeviceFunction.COM2_TX);
+			//Configuration.SetPinFunction(16, DeviceFunction.COM2_RX);
+
 			// open COM2
-			ConfigPort("COM2");
+			ConfigPins(sensorMode);
+
 			ConfigMode(sensorMode);
 #else
 			///////////////////////////////////////////////////////////////////////////////////////////////////
 			// COM6 in STM32F769IDiscovery board (Tx, Rx pins exposed in Arduino header CN13: TX->D1, RX->D0)
+			
 			// open COM6
-			ConfigPort("COM6");
+			ConfigPins(sensorMode);
+
 			ConfigMode(sensorMode);
 #endif
 		}
 
+		private void ConfigPins(Mode sensorMode)
+		{
+			if ((sensorMode == Mode.Pulse) || (sensorMode == Mode.Pulse_LP))
+			{
+				// Change to suit you hardware set-up
+				if ((TriggerPin) == EchoPin == false)
+				{ 
+					TriggerPin = 16;
+					EchoPin = 17;
+				}
+				ConfigRMT(TriggerPin, EchoPin);
+			}
+			else
+			{
+				// set GPIO functions for COM2 (this is UART2 on ESP32 WROOM32)
+				Configuration.SetPinFunction(17, DeviceFunction.COM2_TX);
+				Configuration.SetPinFunction(16, DeviceFunction.COM2_RX);
+#if BUIID_FOR_ESP32
+				ConfigPort("COM2");
+#else
+				ConfigPort("COM6");
+#endif
+			}
+		}
+
+		private void ConfigRMT(int TxPin, int RxPin)
+		{
+			// Set-up TX & RX channels
+
+			// We need to send a 10us pulse to initiate measurement
+			_txChannel = new TransmitterChannel(TxPin);
+
+			_txPulse = new RmtCommand(10, true, 10, false);
+			_txChannel.AddCommand(_txPulse);
+			_txChannel.AddCommand(new RmtCommand(20, true, 15, false));
+
+			_txChannel.ClockDivider = 80;
+			_txChannel.CarrierEnabled = false;
+			_txChannel.IdleLevel = false;
+
+			// The received echo pulse width represents the distance to obstacle
+			// 150us to 38ms
+			_rxChannel = new ReceiverChannel(RxPin);
+
+			_rxChannel.ClockDivider = 80; // 1us clock ( 80Mhz / 80 ) = 1Mhz
+			_rxChannel.EnableFilter(true, 100); // filter out 100Us / noise 
+			_rxChannel.SetIdleThresold(40000);  // 40ms based on 1us clock
+			_rxChannel.ReceiveTimeout = new TimeSpan(0, 0, 0, 0, 60);
+		}
 		private static void ConfigPort(string port)
 		{
 			_serialDevice = SerialDevice.FromId(port);
@@ -143,10 +204,38 @@ namespace Driver.nf_Serial_HCSR04
 		
 		private int GetDistancePULSE()
         {
-			return 0;
-        }
+			RmtCommand[] response = null;
 
-			public int GetDistanceBIN()
+			_rxChannel.Start(true);
+
+			// Send 10us pulse
+			_txChannel.Send(false);
+
+			// Try 5 times to get valid response
+			for (int count = 0; count < 5; count++)
+			{
+				response = _rxChannel.GetAllItems();
+				if (response != null)
+					break;
+
+				// Retry every 60 ms
+				Thread.Sleep(60);
+			}
+
+			_rxChannel.Stop();
+
+			if (response == null)
+				return -1;
+
+			// Echo pulse width in micro seconds
+			int duration = response[0].Duration0;
+
+			// Calculate distance in meters
+			// Distance calculated as  (speed of sound) * duration(meters) / 2 
+			return (int)_speedOfSound * duration / (1000000 * 2);
+		}
+
+		public int GetDistanceBIN()
 			{
 				// Attempt to read 4 bytes from the Serial Device input stream
 				// Format: 0XFF + H_DATA + L_DATA + SUM
