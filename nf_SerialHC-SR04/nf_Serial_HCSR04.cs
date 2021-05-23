@@ -40,15 +40,17 @@ namespace Driver.nf_Serial_HCSR04
 		TransmitterChannel _txChannel;
 		RmtCommand _txPulse;
 
-		public int TriggerPin = -1;
-		public int EchoPin = -1;
+		public int TriggerPin = 0;
+		public int EchoPin = 0;
 		const float _speedOfSound = 340.29F;
+		public Status status;
 
 		/// <summary>
 		/// Constructor module
 		/// </summary>
 		public Serial_HCSR04(SensorType type, Mode mode)
 		{
+			status = Status.Ok;
 			// Define Tx ping byte
 			sensorType = type;
 			// Define Sensor mode
@@ -87,10 +89,11 @@ namespace Driver.nf_Serial_HCSR04
 			if ((sensorMode == Mode.Pulse) || (sensorMode == Mode.Pulse_LP))
 			{
 				// Change to suit you hardware set-up
-				if ((TriggerPin) == EchoPin == false)
+				// if one of them is not configured, both will default to 16 and 17
+				if (TriggerPin == 0 || EchoPin == 0)
 				{ 
-					TriggerPin = 16;
-					EchoPin = 17;
+					TriggerPin = 17;
+					EchoPin = 16;
 				}
 				ConfigRMT(TriggerPin, EchoPin);
 			}
@@ -191,25 +194,31 @@ namespace Driver.nf_Serial_HCSR04
 		}
 		public int GetDistance()
         {
+			status = Status.Ok;
 			SensorPing(sensorType);
-			Thread.Sleep(100);
 			return _GetDistance();
 		}
 
 		private void SensorPing(SensorType ping)
-		{
-			outputDataWriter.WriteByte((byte) ping);
-			_ = outputDataWriter.Store();
+		{	if (TriggerPin == 0)
+			{
+				outputDataWriter.WriteByte((byte)ping);
+				_ = outputDataWriter.Store();
+				Thread.Sleep(100);
+			}
+			else
+            {
+
+				// Send 10us pulse
+				_txChannel.Send(true);
+			}
 		}
-		
+
 		private int GetDistancePULSE()
-        {
+		{
 			RmtCommand[] response = null;
 
 			_rxChannel.Start(true);
-
-			// Send 10us pulse
-			_txChannel.Send(false);
 
 			// Try 5 times to get valid response
 			for (int count = 0; count < 5; count++)
@@ -225,14 +234,16 @@ namespace Driver.nf_Serial_HCSR04
 			_rxChannel.Stop();
 
 			if (response == null)
+			{
+				status = Status.TimeOut;
 				return -1;
-
+			}
 			// Echo pulse width in micro seconds
 			int duration = response[0].Duration0;
 
-			// Calculate distance in meters
-			// Distance calculated as  (speed of sound) * duration(meters) / 2 
-			return (int)_speedOfSound * duration / (1000000 * 2);
+			// Calculate distance in milimeters
+			// Distance calculated as  (speed of sound) * duration(miliseconds) / 2 
+			return (int)_speedOfSound * duration / (1000 * 2);
 		}
 
 		public int GetDistanceBIN()
@@ -259,9 +270,12 @@ namespace Driver.nf_Serial_HCSR04
 					{
 						return distanceByte;
 					}
-					return distanceByte;
+					status = Status.DataCheckError;
+					return -1;
 				}
-				return 0;
+
+				status = Status.DataError;
+				return -1;
 			}
 		private int GetDistanceASCII()
         {
@@ -293,9 +307,11 @@ namespace Driver.nf_Serial_HCSR04
 				{
 					return distanceByte;
 				}
-				return distanceByte;
+				status = Status.DataCheckError;
+				return -1;
 			}
-			return 0;
+			status = Status.DataError;
+			return -1;
 
 		}
 

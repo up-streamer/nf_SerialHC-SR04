@@ -12,7 +12,7 @@ namespace testnf_SerialHC_SR04
         public static void Main()
         {
 
-            sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Serial_LP_Bin);
+            sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Pulse);
             //sensor.DataReceived += PrintData;
 
             for (int i = 0; i < 500; i++)

@@ -27,6 +27,7 @@ namespace Driver.nf_SerialHC_SR04
             TimeOut,
             DataError,
             ConfigError,
+            DataCheckError,
         }
     }
 }
