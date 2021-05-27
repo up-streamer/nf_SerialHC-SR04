@@ -143,6 +143,7 @@ namespace Driver.nf_Serial_HCSR04
 			_serialDevice.StopBits = SerialStopBitCount.One;
 			_serialDevice.Handshake = SerialHandshake.None;
 			_serialDevice.DataBits = 8;
+			_serialDevice.WatchChar = '\xff';
 			// set Timouts
 			//_serialDevice.WriteTimeout = new TimeSpan(0, 0, 0, 500);
 			//_serialDevice.ReadTimeout = new TimeSpan(0, 0, 0, 500);
@@ -320,11 +321,91 @@ namespace Driver.nf_Serial_HCSR04
 		/// </summary>
 		/// <param name="Sender"></param>
 		/// <param name="EventData"></param>
-		private void GetDistanceAUTO(object Sender, SerialDataReceivedEventArgs EventData)
+		int count = 0;
+		bool watchCharRecv;
+		byte [] dataauto = new byte[4];
+		private void GetDistanceAUTO(object sender, SerialDataReceivedEventArgs e)
 		{
-			Distance = GetDistanceBIN();
+			//bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
 
-			DataReceived(0, 0, new DateTime());
-		}
-	}
+			//if (bytesRead == 4)
+			//{
+			//	Distance = GetDistanceBIN();
+
+			//	DataReceived(0, 0, new DateTime());
+			//}
+		
+			count++;
+			Debug.WriteLine(count.ToString());
+
+
+			// Attempt to read 4 bytes from the Serial Device input stream
+			// Format: 0XFF + H_DATA + L_DATA + SUM
+
+			//*************************
+			if (e.EventType == SerialData.WatchChar)
+			{
+				Debug.WriteLine("rx chars");
+				watchCharRecv = true;
+				//dataauto[0] = 0xff;
+			}
+			if (watchCharRecv)
+			{
+				Debug.WriteLine("rx data");
+
+				using (inputDataReader)
+				{
+					//SerialDevice serialDevice = (SerialDevice)sender;
+
+
+					//inputDataReader.InputStreamOptions = InputStreamOptions.Partial;
+
+					// read all available bytes from the Serial Device input stream
+					bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
+
+					Debug.WriteLine("Read completed: " + bytesRead + " bytes were read from " + _serialDevice.PortName + ".");
+
+					if (bytesRead > 4)
+					{
+						inputDataReader.ReadBytes(data);
+						
+
+						Debug.WriteLine($"RX = {(byte)data[0] + " " + (byte)data[1] + " " + (byte)data[2] + " " + (byte)data[3]}");
+					}
+					watchCharRecv = false;
+				}
+			}
+            //************************
+
+            #region Old code
+            //         Debug.WriteLine("Bytes to Read on Buffer = " + _serialDevice.BytesToRead);
+            //bytesRead = inputDataReader.Load(_serialDevice.BytesToRead);
+            //Debug.WriteLine("Bytes Read = " + bytesRead);
+
+
+            //if (bytesRead == 4) //For modes Serial_Auto, Serial_LP_Bin, serial binary with trigger
+            //{
+            //	data = new byte[bytesRead];
+            //	inputDataReader.ReadBytes(data);
+
+            //	distanceByte = (data[1] << 8) | data[2];
+            //	sum = data[3];
+            //	dataCheck = (uint)(data[0] + data[1] + data[2] + 1) & 0x00ff;
+            //	Debug.WriteLine("Datacheck = " + dataCheck.ToString() + " -- Sum = " + sum.ToString());
+
+            //	// For mode 4, serial binary with trigger
+            //	Debug.WriteLine($"RX = {(byte)data[0] + " " + (byte)data[1] + " " + (byte)data[2] + " " + (byte)data[3]}");
+
+            //	if (dataCheck == sum)
+            //	{
+            //		Distance =  distanceByte;
+            //		DataReceived(0, 0, new DateTime());
+            //	}
+            //	status = Status.DataCheckError;
+            //}
+
+            //status = Status.DataError;
+            #endregion
+        }
+    }
 }

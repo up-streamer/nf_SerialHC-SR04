@@ -12,20 +12,23 @@ namespace testnf_SerialHC_SR04
         public static void Main()
         {
 
-            sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Pulse);
-            //sensor.DataReceived += PrintData;
+            sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Serial_Auto);
+            sensor.DataReceived += PrintData;
 
-            for (int i = 0; i < 500; i++)
-            {
-                int distance = sensor.GetDistance();
-                Debug.WriteLine($"distance = {distance} mm" + $"--> count = {i}");
-                Thread.Sleep(1000);
-            }
+            //for (int i = 0; i < 500; i++)
+            //{
+            //    int distance = sensor.GetDistance();
+            //    Debug.WriteLine($"distance = {distance} mm" + $"--> count = {i}");
+            //    Thread.Sleep(1000);
+            //}
 
         }
-        //static void PrintData(uint data1, uint data2, DateTime date)
-        //{
-        //    Debug.WriteLine($"Distance = {sensor.Distance} mm" + $"--> Date = {date.ToString()}");
-        //}
+
+        static void PrintData(uint data1, uint data2, DateTime date)
+        {
+            Debug.WriteLine($"Distance = {sensor.Distance} mm" + $"--> Date = {date.ToString()}");
+
+            //Thread.Sleep(1000);
+        }
     }
 }
