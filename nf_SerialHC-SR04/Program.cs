@@ -11,10 +11,10 @@ namespace testnf_SerialHC_SR04
         private static Serial_HCSR04 sensor;
         public static void Main()
         {
-
             sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Serial_Auto);
-            sensor.DataReceived += PrintData;
+            sensor.ReadInterval = 1000;
 
+            // To test receive data on demand, by pinging the device.
             //for (int i = 0; i < 500; i++)
             //{
             //    int distance = sensor.GetDistance();
@@ -22,13 +22,13 @@ namespace testnf_SerialHC_SR04
             //    Thread.Sleep(1000);
             //}
 
-        }
+            // To test receive data when in auto mode, no need to ping the device.
+            for (int i = 0; i < 500; i++)
+            {
+                Debug.WriteLine($"distance = {sensor.Distance} mm" + $"--> count = {i}");
+                Thread.Sleep(2000);
+            }
 
-        static void PrintData(uint data1, uint data2, DateTime date)
-        {
-            Debug.WriteLine($"Distance = {sensor.Distance} mm" + $"--> Date = {date.ToString()}");
-
-            //Thread.Sleep(1000);
         }
     }
 }
