@@ -18,7 +18,7 @@ namespace Driver.nf_Serial_HCSR04
         //To save incoming bytes
         byte[] data;
         private readonly string port;
-        public SensorType sensorType;
+        public readonly SensorType sensorType;
         public readonly Mode sensorMode;
         private readonly byte[] ping = new byte[1];
         private delegate int GetDistanceDelegate();
@@ -27,8 +27,8 @@ namespace Driver.nf_Serial_HCSR04
         uint sum;
         uint dataCheck;
 
-        public int TriggerPin = 0;
-        public int EchoPin = 0;
+        private int TriggerPin = 0;
+        private int EchoPin = 0;
 
         public Status status;
 
@@ -44,6 +44,7 @@ namespace Driver.nf_Serial_HCSR04
         {
             set
             {
+                readInterval = readInterval - 100;
                 readInterval = readInterval < 100 ? 100 : value;
                 _GetDistanceTimer.Change(0, readInterval);
             }
@@ -158,7 +159,7 @@ namespace Driver.nf_Serial_HCSR04
 
         }
         
-        public void NewValues(int dist, Status sta)
+        private void NewValues(int dist, Status sta)
         {
             distance = dist;
             status = sta;
@@ -216,7 +217,7 @@ namespace Driver.nf_Serial_HCSR04
             return (int)Constant.Speed_of_Sound * duration / (1000 * 2);
         }
 
-        public int GetDistanceBIN()
+        private int GetDistanceBIN()
         {
             // Attempt to read 4 bytes from the Serial Device input stream
             // Format: 0XFF + H_DATA + L_DATA + SUM
@@ -276,7 +277,7 @@ namespace Driver.nf_Serial_HCSR04
         }
     }
 
-    public class GetDistanceAUTO
+    class GetDistanceAUTO
     {
         private readonly NewValuesCallback NewValues;
         readonly ConfigSerial Serial = new();
@@ -300,7 +301,7 @@ namespace Driver.nf_Serial_HCSR04
             NewValues = NV;
         }
 
-        public void ThreadProcess(object state)
+        public  void ThreadProcess(object state)
         {
             Serial.Device.Write(pingByte, 0, pingByte.Length);
             Thread.Sleep(100);
