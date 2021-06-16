@@ -53,7 +53,7 @@ namespace Driver.nf_SerialHC_SR04
             public TransmitterChannel _txChannel;
             public RmtCommand _txPulse;
             public RmtCommand[] response;
-            public  void Config(int TxPin, int RxPin)
+            public void Config(int TxPin, int RxPin)
             {
                 // Set-up TX & RX channels
                 // We need to send a 10us pulse to initiate measurement
@@ -98,7 +98,7 @@ namespace Driver.nf_SerialHC_SR04
                     // set Timout,
                     WriteTimeout = 1000,
                     ReadTimeout = 1000,
-                    //WatchChar = 'X',      // \xff
+                    //WatchChar = 'x',     // \x0ff
                 };
                 Device.Open();
 
