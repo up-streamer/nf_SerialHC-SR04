@@ -13,19 +13,19 @@ namespace Driver.nf_Serial_HCSR04
 
     public class Serial_HCSR04
     {
-        readonly ConfigSerial Serial = new();
-        readonly ConfigRMT RMT = new();
-        //To save incoming bytes
         byte[] data;
+        uint sum;
+        uint dataCheck;
+        private readonly byte[] ping = new byte[1];
         private readonly string port;
         public readonly SensorType sensorType;
         public readonly Mode sensorMode;
-        private readonly byte[] ping = new byte[1];
+
+        readonly ConfigSerial Serial = new();
+        readonly ConfigRMT RMT = new();
         private delegate int GetDistanceDelegate();
         GetDistanceDelegate _GetDistance;
         private static Timer _GetDistanceTimer;
-        uint sum;
-        uint dataCheck;
 
         private int TriggerPin = 0;
         private int EchoPin = 0;
@@ -44,7 +44,7 @@ namespace Driver.nf_Serial_HCSR04
         {
             set
             {
-                readInterval = readInterval - 100;
+                readInterval -= 100;
                 readInterval = readInterval < 100 ? 100 : value;
                 _GetDistanceTimer.Change(0, readInterval);
             }
@@ -56,7 +56,7 @@ namespace Driver.nf_Serial_HCSR04
 
         // To debug raw data from sensor, remove after finish
         PrintRaw PR = new();
-        
+
         /// <summary>
         /// Constructor module
         /// </summary>
@@ -74,8 +74,11 @@ namespace Driver.nf_Serial_HCSR04
 
             // List available ports
             var serialPorts = SerialPort.GetPortNames();
-            Debug.WriteLine("Avail. Ports = " + serialPorts);
 
+            foreach (string port in serialPorts)
+            {
+                Debug.WriteLine("Avail. Port - " + port);
+            }
 #if BUIID_FOR_ESP32
             ////////////////////////////////////////////////////////////////////////////////////////////////////
             // COM2 in ESP32-WROVER-KIT mapped to free GPIO pins
@@ -158,7 +161,7 @@ namespace Driver.nf_Serial_HCSR04
             }
 
         }
-        
+
         private void NewValues(int dist, Status sta)
         {
             distance = dist;
@@ -282,7 +285,7 @@ namespace Driver.nf_Serial_HCSR04
         private readonly NewValuesCallback NewValues;
         readonly ConfigSerial Serial = new();
         readonly byte[] pingByte = new byte[1];
-        readonly byte[] data = new byte [4]; //To save incoming bytes
+        readonly byte[] data = new byte[4]; //To save incoming bytes
         uint dataCheck;
         private int distance;
         uint sum;
@@ -301,12 +304,12 @@ namespace Driver.nf_Serial_HCSR04
             NewValues = NV;
         }
 
-        public  void ThreadProcess(object state)
+        public void ThreadProcess(object state)
         {
             Serial.Device.Write(pingByte, 0, pingByte.Length);
             Thread.Sleep(100);
 
-            if (Serial.Device.BytesToRead == 4) 
+            if (Serial.Device.BytesToRead == 4)
             {
                 Serial.Device.Read(data, 0, data.Length);
 
