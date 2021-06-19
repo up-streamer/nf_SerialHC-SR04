@@ -54,7 +54,7 @@ namespace Driver.nf_Serial_HCSR04
             }
         }
 
-        // To debug raw data from sensor, remove after finish
+        // * For debuging raw data from sensor *
         PrintRaw PR = new();
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Driver.nf_Serial_HCSR04
         {
             if ((sensorMode == Mode.Pulse) || (sensorMode == Mode.Pulse_LP))
             {
-                // Change to suit you hardware set-up
+                // Change to suit your hardware set-up
                 // if one of them is not configured, both will default to 16 and 17 
                 if (TriggerPin == 0 || EchoPin == 0)
                 {
@@ -233,8 +233,7 @@ namespace Driver.nf_Serial_HCSR04
                 sum = data[3];
                 dataCheck = (uint)(data[0] + data[1] + data[2] + 1) & 0x00ff;
 
-                // * For debuging data received REMOVE on finished code. *
-                //PrintRAW(data, data.Length, dataCheck);
+                // * For debuging data received *
                 PR.ViewData(data, sum, dataCheck);
 
                 if (dataCheck == sum)
@@ -261,12 +260,11 @@ namespace Driver.nf_Serial_HCSR04
                 Serial.Device.Read(data, 0, data.Length);
 
                 distance = ((data[4] - 48) * 1000) + ((data[5] - 48) * 100) + ((data[6] - 48) * 10) + ((data[7] - 48));
-                sum = (uint)data[0] + data[1] + data[2] + data[3] + data[8] + data[8] + data[10] + data[11];
+                sum = (uint)data[0] + data[1] + data[2] + data[3] + data[8] + data[9] + data[10] + data[11];
                 dataCheck = 582;
 
-                // * For debuging data received REMOVE on finished code. *
-                //PrintRAW(data, data.Length, dataCheck);
-                PR.ViewData(data, sum, dataCheck);
+                    // * For debuging data received *
+                    PR.ViewData(data, sum, dataCheck);
 
                 if (dataCheck == sum)
                 {
@@ -290,7 +288,7 @@ namespace Driver.nf_Serial_HCSR04
         private int distance;
         uint sum;
 
-        // * To debug raw data from sensor, remove after finish *
+        // * To debug raw data from sensor *
         PrintRaw PR = new PrintRaw();
 
         /// <summary>

@@ -12,7 +12,7 @@ namespace testnf_SerialHC_SR04
         public static void Main()
         {
             sensor = new Serial_HCSR04(SensorType.AJ_SR04M, Mode.Serial_Auto);
-            sensor.ReadInterval = 5000;
+            sensor.ReadInterval = 1000;
             
             // * To test receive data on demand, by pinging the device. *
             //for (int i = 0; i < 500; i++)
