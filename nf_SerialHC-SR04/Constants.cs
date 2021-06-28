@@ -8,7 +8,7 @@ using nanoFramework.Hardware.Esp32;
 using nanoFramework.Hardware.Esp32.Rmt;
 #endif
 
-namespace Driver.nf_SerialHC_SR04
+namespace Driver.nf_Serial_HCSR04
 {
     namespace Constants
     {

@@ -4,8 +4,8 @@
 using System.Threading;
 using System.Diagnostics;
 using System.IO.Ports;
-using Driver.nf_SerialHC_SR04.Constants;
-using Driver.nf_SerialHC_SR04.Config;
+using Driver.nf_Serial_HCSR04.Constants;
+using Driver.nf_Serial_HCSR04.Config;
 
 namespace Driver.nf_Serial_HCSR04
 {
