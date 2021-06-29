@@ -9,7 +9,7 @@ using Driver.nf_Serial_HCSR04.Config;
 
 namespace Driver.nf_Serial_HCSR04
 {
-    public delegate void NewValuesCallback(int distance, Status sta);
+    public delegate void _NewValuesCallback(int distance, Status sta);
 
     public class Serial_HCSR04
     {
@@ -280,7 +280,7 @@ namespace Driver.nf_Serial_HCSR04
 
     class GetDistanceAUTO
     {
-        private readonly NewValuesCallback NewValues;
+        private readonly _NewValuesCallback NewValues;
         readonly ConfigSerial Serial = new();
         readonly byte[] pingByte = new byte[1];
         readonly byte[] data = new byte[4]; //To save incoming bytes
@@ -294,7 +294,7 @@ namespace Driver.nf_Serial_HCSR04
         /// <summary>
         /// Constructor module
         /// </summary>
-        public GetDistanceAUTO(string port, SensorType sensorType, NewValuesCallback NV)
+        public GetDistanceAUTO(string port, SensorType sensorType, _NewValuesCallback NV)
         {
             Serial.Config(port);
             pingByte[0] = (byte)sensorType;
