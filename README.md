@@ -19,8 +19,9 @@ Notes:
 LP - Low Power mode. (AJ-SR04 can go down to 20uA in stand-by).  
 BIN - Binary mode, 4 bytes sent from sensor.  
 ASCII - ASCII mode, 12 bytes sent from sensor. 
-Serial_Auto AJ-SR04 will produce a fix 100ms sample rate in binary mode,  
+Serial_Auto AJ-SR04 will produce a fix 100ms sample rate in binary mode, 
 this mode was implemented using Timer instead to allow modify sample rate. Set resitors to Serial_LP_Bin for both sensors.  
+Due this, the minimum time between samples will be 150ms. 
 For generic HC-SR04; select Pulse mode.  
 Trigger and Echo pins are defaulted to serial port pins for ESP32, to allow tests without changing wires.  
 Remember: If working with 5V sensors; use voltage level shift circuits for MCU that aren't 5V tolerant, as ESP32.
