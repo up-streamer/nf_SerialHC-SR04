@@ -180,7 +180,7 @@ namespace Driver.nf_Serial_HCSR04
             if (TriggerPin == 0)
             {
                 Serial.Device.Write(ping, 0, ping.Length);
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
             else
             {
@@ -305,7 +305,7 @@ namespace Driver.nf_Serial_HCSR04
         public void ThreadProcess(object state)
         {
             Serial.Device.Write(pingByte, 0, pingByte.Length);
-            Thread.Sleep(100);
+            Thread.Sleep(50);
 
             if (Serial.Device.BytesToRead == 4)
             {
